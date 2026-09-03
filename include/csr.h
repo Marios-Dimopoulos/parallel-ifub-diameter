@@ -5,6 +5,7 @@
 #include <inttypes.h>
 #include <stddef.h>
 
+#include "types.h"      // vid_t, eid_t.
 #include "mtx.h"        // mtx_t, mtx_policy_t -- needed by csr_build_from_mtx.
 
 /* Vertex id. 32 bits is enough: the largest graph we target has

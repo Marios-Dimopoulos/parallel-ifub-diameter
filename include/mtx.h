@@ -3,7 +3,7 @@
 
 #include <stddef.h>
 #include <stdint.h>
-#include "graph.h"
+#include "types.h"
 
 /* How the file stores an undirected graph.
  *

@@ -2,3 +2,4 @@ src/test_mtx.c
 *.o
 data/
 test_mtx
+test_csr.c
