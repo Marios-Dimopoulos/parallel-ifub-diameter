@@ -1,5 +1,6 @@
 src/test_mtx.c
+src/test_csr.c
 *.o
 data/
 test_mtx
-test_csr.c
+test_csr
