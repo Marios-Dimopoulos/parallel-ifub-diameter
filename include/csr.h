@@ -40,7 +40,7 @@ typedef struct {
     vid_t *col_idx;
 } csr_t;
 
-static inline eid_t car_degree(const csr_t *g, vid_t v) {
+static inline eid_t csr_degree(const csr_t *g, vid_t v) {
     return g->row_ptr[v + 1] - g->row_ptr[v];
 }
 
