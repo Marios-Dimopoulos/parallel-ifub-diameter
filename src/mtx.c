@@ -120,7 +120,7 @@ int mtx_open(const char *path, mtx_t *mx) {
      * MADV_SEQUENTIAL: "I will read fronτ to back, in order."
      *      -> the kernel does aggressive readahead: when i ask for
      *         page 100 it also fetches 101..150 in advance, and it 
-     *         drops pages we already passed from the cache sooner.
+     *         drops pages i already passed from the cache sooner.
      *
      * MADV_WILLNEED: "I will need all of it."
      *      -> the kernel starts pulling it in right now, in the
@@ -156,7 +156,7 @@ int mtx_open(const char *path, mtx_t *mx) {
 
     /* memchr searches for a byte inside a block of memory and returns
      * a pointer to the first occurrence, or NULL if there is none.
-     * (Unlike strchr, it does not care about '\0' -- exactly what we
+     * (Unlike strchr, it does not care about '\0' -- exactly what i
      * need on an mmap.) It is SIMD-optimised in glibc, so it checks
      * 16-32 bytes at a time.
      *
@@ -164,7 +164,7 @@ int mtx_open(const char *path, mtx_t *mx) {
      *                                                     ^
      *                                                     nl
      *
-     * We need this for two things: the banner's lenght (nl - p), and
+     * I need this for two things: the banner's lenght (nl - p), and
      * where to continue afterwards (nl + 1). */
     const char *nl = memchr(p, '\n', mx->len);
     if (!nl) {
@@ -174,10 +174,10 @@ int mtx_open(const char *path, mtx_t *mx) {
 
     /* STEP 7: copy the banner out and lowercase it. */
 
-    /* We want case-insensitive searching, but we cannot lowercase the 
+    /* I want case-insensitive searching, but i cannot lowercase the 
      * mapping in place: it is read-only, and its pages are shared
-     * with the kernel's page cache. So we copy the line into a small
-     * local buffer we own. */
+     * with the kernel's page cache. So i copy the line into a small
+     * local buffer i own. */
     size_t blen = (size_t)(nl - p);     // Lenght of the first line.
     if (blen > 255) blen = 255;
 
@@ -220,7 +220,7 @@ int mtx_open(const char *path, mtx_t *mx) {
      * directions later.
      * 
      * Note "skew-symmetric" contains "symmetric" as a substring. That
-     * is fine: it also stores on triangle, and we only care about
+     * is fine: it also stores on triangle, and i only care about
      * structure, never about the values. Same for "hermitian". */
     mx->is_symmetric = (strstr(banner, "symmetric") != NULL) ||
                        (strstr(banner, "hermitian") != NULL);
@@ -243,7 +243,7 @@ int mtx_open(const char *path, mtx_t *mx) {
 
     /* The line is "rows columns entries".
      * 
-     * We parse the digits by hand rather than calling sscanf. Here
+     * i parse the digits by hand rather than calling sscanf. Here
      * speed does not matter, ut the exact same loop will run
      * billions of times in the main parser, so it is worth seeing
      * it once in a quiet place. */
@@ -301,10 +301,10 @@ int mtx_open(const char *path, mtx_t *mx) {
     mx->data = p;               /* question 2: where edgse start */
     /* questions 3 and 4 were answered in step 8 */
 
-    /* Not we do NOT validate nnz_lines against anything. That is 
-     * deliberate: we treat it as a hind for pre-allocating memory,
-     * never as truth. The real edge cound comes from counting. If we 
-     * trusted a sligthly truncated file, we would write past the end 
+    /* I do NOT validate nnz_lines against anything. That is 
+     * deliberate: i treat it as a hind for pre-allocating memory,
+     * never as truth. The real edge cound comes from counting. If i 
+     * trusted a sligthly truncated file, i would write past the end 
      * of our arrays. */
     mx->nnz_lines = dims[2];
 
