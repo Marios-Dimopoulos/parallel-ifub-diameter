@@ -1,0 +1,4 @@
+src/test_mtx.c
+*.o
+data/
+test_mtx
