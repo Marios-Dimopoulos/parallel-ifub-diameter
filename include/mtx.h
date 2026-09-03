@@ -5,8 +5,7 @@
 #include <stdint.h>
 #include "graph.h"
 
-/* ------------------------------------------------------------------
- * How the file stores an undirected graph.
+/* How the file stores an undirected graph.
  *
  * MTX_DUP:  the file holds only one triangle of the matrix, so entry
  *           (i,j) implies (j,i). We must insert BOTH directions.
@@ -14,8 +13,7 @@
  *
  * MTX_ASIS: the file already lists both directions explicitly. We
  *           insert each entry exactly once. This is a "general"
- *           banner holding an already-symmetrised graph.
- * ------------------------------------------------------------------ */
+ *           banner holding an already-symmetrised graph. */
 typedef enum {
     MTX_DUP,
     MTX_ASIS
@@ -28,7 +26,7 @@ typedef enum {
 // on demand.
 typedef struct {
     const char *base;       // Start of the mapping.
-    size_t len;            // file size in bytes.
+    size_t len;             // file size in bytes.
     const char *data;       // first data line, i.e. past the header
 
     vid_t n;                // matrix dimension (we require square).
