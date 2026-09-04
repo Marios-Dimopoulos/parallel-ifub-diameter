@@ -1,5 +1,6 @@
 src/test_mtx.c
 src/test_csr.c
+src/test_bfs_eccentricity.c
 *.o
 data/
 test_mtx
