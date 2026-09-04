@@ -4,3 +4,4 @@ src/test_csr.c
 data/
 test_mtx
 test_csr
+test_bfs_eccentricity
