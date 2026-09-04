@@ -339,15 +339,3 @@ void mtx_describe(const mtx_t *mx) {
         mx->is_pattern   ? "pattern"   : "with values",
         mx->is_symmetric ? "symmetric" : "general");
 }
-
-/* Turn the banner's flag into the decision the CSR
- * builder actually needs: insert each entry once, or twice?
- * 
- * Getting this wrong is silent in both directions:
- *      - duplicating an already-complete file -> every edge twice,
- *        double memory, half speed, but the diameter is still right
- *      - not duplicating a one-triangle file   -> a directed graph
- *        and a WRONG diameter, with no error message at all. */
-mtx_policy_t mtx_policy(const mtx_t *mx) {
-    return mx->is_symmetric ? MTX_DUP : MTX_ASIS;
-}

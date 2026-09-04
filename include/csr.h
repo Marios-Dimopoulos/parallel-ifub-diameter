@@ -6,7 +6,7 @@
 #include <stddef.h>
 
 #include "types.h"      // vid_t, eid_t.
-#include "mtx.h"        // mtx_t, mtx_policy_t -- needed by csr_build_from_mtx.
+#include "mtx.h"        // mtx_t -- needed by csr_build_from_mtx.
 
 /* Compressed Sparse Row storage for an undirected, unweighted graph.
  *
