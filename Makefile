@@ -12,4 +12,4 @@ test_bfs_eccentricity: src/mtx.c src/csr.c src/bfs_eccentricity.c src/test_bfs_e
 	$(CC) $(CFLAGS) -o $@ src/mtx.c src/csr.c src/bfs_eccentricity.c src/test_bfs_eccentricity.c $(LDFLAGS)
 
 clean:
-	rm -f test_mtx test_csr 
+	rm -f test_mtx test_csr test_bfs_eccentricity
