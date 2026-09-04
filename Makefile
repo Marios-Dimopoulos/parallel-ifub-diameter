@@ -15,5 +15,9 @@ test_two_sweep: src/mtx.c src/csr.c src/bfs_eccentricity.c src/two_sweep.c src/t
                 include/types.h include/mtx.h include/csr.h include/bfs_eccentricity.h include/two_sweep.h
 	$(CC) $(CFLAGS) -o $@ src/mtx.c src/csr.c src/bfs_eccentricity.c src/two_sweep.c src/test_two_sweep.c $(LDFLAGS)
 
+test_ifub: src/mtx.c src/csr.c src/bfs_eccentricity.c src/two_sweep.c src/ifub.c src/test_ifub.c \
+           include/types.h include/mtx.h include/csr.h include/bfs_eccentricity.h include/two_sweep.h include/ifub.h
+	$(CC) $(CFLAGS) -o $@ src/mtx.c src/csr.c src/bfs_eccentricity.c src/two_sweep.c src/ifub.c src/test_ifub.c $(LDFLAGS)
+
 clean:
-	rm -f test_mtx test_csr test_bfs_eccentricity test_two_sweep
+	rm -f test_mtx test_csr test_bfs_eccentricity test_two_sweep test_ifub
