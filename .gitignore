@@ -1,8 +1,10 @@
 src/test_mtx.c
 src/test_csr.c
 src/test_bfs_eccentricity.c
+src/test_two_sweep.c
 *.o
 data/
 test_mtx
 test_csr
 test_bfs_eccentricity
+test_two_sweep

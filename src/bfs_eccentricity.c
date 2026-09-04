@@ -3,7 +3,7 @@
 #include "bfs_eccentricity.h"
 
 dist_t bfs_eccentricity(const csr_t *g, vid_t source, dist_t *dist) {
-    /* Every vertex starts "not reached". I makr them all up front
+    /* Every vertex starts "not reached". I mark them all up front
      * rather than trying to track "seen vs unseen" seprately --
      * dist[] itself doubles as the visited marker: dist[v] ==
      * DIST_UNREACHED means "never queued", anything else means

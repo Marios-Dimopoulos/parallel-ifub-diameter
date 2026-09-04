@@ -22,7 +22,7 @@ typedef int32_t dist_t;
  * 
  * Returns the eccentricity of 'source': the largest distance found,
  * i.e. max(dist[v]) over all reached v. This is exactly what the 
- * later 4-sweep / iFUB algorithm needs from every BFS they run, so 
+ * later 2-sweep / iFUB algorithm needs from every BFS they run, so 
  * i compute it here once rather than making every caller scan 
  * dist[] again afterwards. */
 dist_t bfs_eccentricity(const csr_t *g, vid_t source, dist_t *dist);
