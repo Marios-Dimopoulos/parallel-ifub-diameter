@@ -7,8 +7,8 @@
 /* Vertex id: 32 bits, enough for graphs up to ~4.29 billion vertices. */
 typedef uint32_t vid_t;
 
-/* Edge index: MUST be 64 bits -- some target graphs exceed 4 billion
- * directed entries, which would silently wrap a 32-bit counter. */
+/* Edge index: MUST be 64 bits -- some target graphs exceed ~4.3 billion
+ * directed entries, which would lead to overflow. */
 typedef uint64_t eid_t;
 
 #define PRIvid PRIu32

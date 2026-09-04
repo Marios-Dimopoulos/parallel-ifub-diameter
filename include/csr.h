@@ -46,12 +46,13 @@ void csr_free(csr_t *g);
  *      prefix sum: turn degress into row_ptr
  *      pass 2: place each neigbour into its slot in col_idx
  *
- * 'pol' decides whether entry (i, j) becomes one directed edge or two
- * -- see mtx_policy_t in mtx.h. 
+ * Whether an entry (i, j) needs to be duplicataed is decided
+ * from mx->is_symmetric: a symmetric banner means the file
+ * stores only one triangle, so both directions must be inserted.
  *
  * On success fills 'g' and returns 0. 'g' is then owned by the
  * caller and must eventually be released with csr_free(). On
  * failure returns -1 and 'g' is left untouched. */
-int csr_build_from_mtx(const mtx_t *mx, mtx_policy_t pol, csr_t *g);
+int csr_build_from_mtx(const mtx_t *mx, csr_t *g);
 
 #endif

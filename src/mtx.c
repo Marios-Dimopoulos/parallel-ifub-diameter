@@ -140,10 +140,10 @@ int mtx_open(const char *path, mtx_t *mx) {
 
     /* STEP 5: Check if this is really a Matrix Market file.*/
     
-    /* Every such file starts with the literal text "%%MatrixMarket".
-     * strncmp compares at most N bytes and returns 0 when they match.
-     * I use it instead of strcmp because strcmp keeps going until it
-     * finds a '\0', and there is no '\0' anywhere in our mapping. */
+    /* Reject anything too small or wrong before trusting its bytes.
+     * The length check must run first and short-circuit: tsrncmp() below
+     * reads 14 bytes starting at p, and without this guard a file under 
+     * 14 bytes could make it read past the end of the mapping -> segfaul.*/
     if (mx->len < 15 || strncmp(p, "%%MatrixMarket", 14) != 0) {
         fprintf(stderr, "not a Matrix Market file\n");
         munmap((void *)base, mx->len);  // Undo the mmap before leaving.
@@ -246,7 +246,7 @@ int mtx_open(const char *path, mtx_t *mx) {
      * billions of times in the main parser, so it is worth seeing
      * it once in a quiet place. */
 
-    uint64_t dims[3] = { 0, 0, 0};
+    uint64_t dims[3] = {0, 0, 0};
     for (int k = 0; k < 3; k++) {
 
        /* eat any leading spaces or tabs before the number */
@@ -282,7 +282,7 @@ int mtx_open(const char *path, mtx_t *mx) {
         return -1;
     }
 
-    /* vid_t is uint32_t, so a graph with more than 4,294,967,295 vertices
+    /* vid_t is uint32_t, so a graph with more than (2^32)-1 vertices
      * cannot be represented. */
     if (dims[0] > VID_MAX) {
         fprintf(stderr, "n = %llu exceeds 32-bit vid_t\n",

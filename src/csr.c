@@ -84,18 +84,17 @@ static int parse_edge_line(const char **pp, const char *end,
  *   PREFIX SUM    : turn those counts into row_ptr offsets
  *   PASS 2        : re-read the same lines, and this time actually
  *                   write each neighbour into its slot in col_idx. */
-int csr_build_from_mtx(const mtx_t *mx, mtx_policy_t pol, csr_t *g) {
+int csr_build_from_mtx(const mtx_t *mx, csr_t *g) {
     const char *end = mx->base + mx->len;   
     vid_t n = mx->n;                        
                                             
 
     /* PASS 1: count each vertex's degree
      *
-     * I walk every data line once. For each edge (i,j) i increment
-     * a per-vertex counter. If i need to duplicate (MTX_DUP, the file
-     * stores only one triangle), i increment BOTH i's and j's
+     * I walk every data line once. For each edge (i,j) i increment a per-vertex counter. 
+     * If i need to duplicate (is_symmetric flag is up), i increment BOTH i's and j's
      * counters, since the edge will end up in both adjacency lists.
-     * If the file already lists both directions (MTX_ASIS), i only
+     * If the file already lists both directions (is_symmetric flag is down), i only
      * increment i's counter here -- the matching increment for j
      * will happen naturally when i later read the line that lists
      * the same edge from j's side. */
@@ -114,8 +113,7 @@ int csr_build_from_mtx(const mtx_t *mx, mtx_policy_t pol, csr_t *g) {
         return -1;
     }
 
-    const char *p = mx->data;       // mx->data points at the first character of the data.  
-                                  
+    const char *p = mx->data;       // mx->data points at the first character of the data.              
     uint64_t line_no = 0;           // only used to make error messages useful.
 
     while (p < end) {
@@ -134,7 +132,7 @@ int csr_build_from_mtx(const mtx_t *mx, mtx_policy_t pol, csr_t *g) {
         if (i == j) continue;
 
         degree[i]++;
-        if (pol == MTX_DUP) degree[j]++;
+        if (mx->is_symmetric) degree[j]++;
     }
 
     /* PREFIX SUM: degree[] is transformed IN PLACE into row_ptr[]
@@ -212,7 +210,7 @@ int csr_build_from_mtx(const mtx_t *mx, mtx_policy_t pol, csr_t *g) {
         col_idx[cursor[i]++] = j;
 
         /* If duplicating, also write the mirror entry i into j's list. */
-        if (pol == MTX_DUP) col_idx[cursor[j]++] = i;
+        if (mx->is_symmetric) col_idx[cursor[j]++] = i;
     }
 
     free(cursor);   
