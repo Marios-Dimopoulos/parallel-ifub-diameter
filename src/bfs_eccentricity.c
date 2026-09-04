@@ -19,11 +19,11 @@ dist_t bfs_eccentricity(const csr_t *g, vid_t source, dist_t *dist) {
      * them, [head, tail) are the ones not yet processed. */
     vid_t *queue = malloc((size_t)g->n * sizeof(vid_t));
     if (!queue) {
-        fprintc(stderr, "bfs: out of memory (queue, %" PRIvid " vertices)\n", g->n);
+        fprintf(stderr, "bfs: out of memory (queue, %" PRIvid " vertices)\n", g->n);
         return -1;
     }
 
-    vid_t head = 0; tail = 0;
+    vid_t head = 0, tail = 0;
 
     dist[source] = 0;
     queue[tail++] = source;

@@ -1,5 +1,5 @@
 #ifndef BFS_ECCENTRICITY_H
-#ifndef BFS_ECCENTRICITY_H
+#define BFS_ECCENTRICITY_H
 
 #include <stdint.h>
 #include <inttypes.h>
