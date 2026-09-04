@@ -29,7 +29,7 @@ typedef struct {
     size_t len;             // file size in bytes.
     const char *data;       // first data line, i.e. past the header
 
-    vid_t n;                // matrix dimension (we require square).
+    vid_t n;                // matrix dimension (square required).
     uint64_t nnz_lines;     // entry count from the header line.
 
     int is_pattern;         // no third column of values.

@@ -8,22 +8,6 @@
 #include "types.h"      // vid_t, eid_t.
 #include "mtx.h"        // mtx_t, mtx_policy_t -- needed by csr_build_from_mtx.
 
-/* Vertex id. 32 bits is enough: the largest graph we target has
- * ~130 million vertices, well under UINT32_MAX (~4.3 billion).
- * 
- * Kept at 32 bits rather than 64 because col_idx has one entry per 
- * directed edge -- billions of them. Halving the bytes moved matters 
- * a lot on a memory-bandwidth-bound workload like BFS. */
-typedef uint32_t vid_t;
-
-/* Edge index. This one MUST be 64 bits, because the graphs i will be using,
- * will probably have more than ~2.3 billion nnz, which means overflow. */
-typedef uint64_t eid_t;
-
-#define PRIvid PRIu32
-#define PREeid PRIu64
-#define VID_MAX UINT32_MAX
-
 /* Compressed Sparse Row storage for an undirected, unweighted graph.
  *
  * The neighbours of vertex v live in col_idx at positions

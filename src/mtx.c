@@ -1,5 +1,4 @@
-/* ============================================================
- * mtx.c -- opening a Matrix Market file and reading its header
+/* mtx.c -- opening a Matrix Market file and reading its header
  * 
  * This file does exactly ONE job: given a filename, it answers
  * four questions and then stops.
@@ -9,16 +8,15 @@
  *  3. Does each stored entry mean one edge or two?
  *  4. Is there a third column of values to skip?
  *
- * It does NOT read a single edge. That is another file's job.
+ * It does NOT read a single edge.
  * Think of it as opening a book and reading only the table of 
- * contents to find the page where the story begins.
- * ============================================================*/
+ * contents to find the page where the story begins. */
 
 /* A "feature test macro". System headers hide some functions behind
  * #ifndef checks, because they are Linux extensions and not part of 
  * standard C. Defining this switches them on.
  *
- * It MUST be the very first line. If it come safter and #include, that
+ * It MUST be the very first line. If it comes after an #include, that
  * header was already processed with the switch off, and the function
  * declaration is lost -- you get "implicit declaration of madvise". */
 #define _GNU_SOURCE
@@ -148,7 +146,7 @@ int mtx_open(const char *path, mtx_t *mx) {
      * finds a '\0', and there is no '\0' anywhere in our mapping. */
     if (mx->len < 15 || strncmp(p, "%%MatrixMarket", 14) != 0) {
         fprintf(stderr, "not a Matrix Market file\n");
-        munmap((void *)base, mx->len);  /* Undo the mmap before leaving */
+        munmap((void *)base, mx->len);  // Undo the mmap before leaving.
         return -1;
     }
 
@@ -232,7 +230,7 @@ int mtx_open(const char *path, mtx_t *mx) {
      * know in advance, so i loop until i see something else.
      *
      * '\r' is handled because files written on Windows end lines
-     * with "\r\n" rathre than just "\n". */
+     * with "\r\n" rathr than just "\n". */
     p = nl + 1;
     while (p < end && (*p == '%' || *p == '\n' || *p == '\r')) {
         p = skip_line(p, end);
@@ -284,10 +282,8 @@ int mtx_open(const char *path, mtx_t *mx) {
         return -1;
     }
 
-    /* This is the safety net i designed into graph.h. vid_t is
-     * uint32_t, so a graph with more than 4,294,967,295 vertices
-     * cannot be represented. Fail loudly here rather than silently
-     * truncating every vertex id. */
+    /* vid_t is uint32_t, so a graph with more than 4,294,967,295 vertices
+     * cannot be represented. */
     if (dims[0] > VID_MAX) {
         fprintf(stderr, "n = %llu exceeds 32-bit vid_t\n",
                 (unsigned long long)dims[0]);
@@ -311,8 +307,7 @@ int mtx_open(const char *path, mtx_t *mx) {
     return 0;
 }
 
-/* Release the mapping. Setting base to NULL afterwards is what
- * makes a second call harmless -- the if() simply does nothing. */
+/* Release the mapping. */
 void mtx_close(mtx_t *mx) {
     if (mx->base) {
         munmap((void *)mx->base, mx->len);

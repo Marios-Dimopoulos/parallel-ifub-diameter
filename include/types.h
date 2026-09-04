@@ -15,4 +15,5 @@ typedef uint64_t eid_t;
 #define PRIeid PRIu64
 #define VID_MAX UINT32_MAX
 
-#endif /* TYPES_H */
+#endif 
+
