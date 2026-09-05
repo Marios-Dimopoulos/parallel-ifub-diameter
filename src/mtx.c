@@ -14,11 +14,9 @@
 
 /* A "feature test macro". System headers hide some functions behind
  * #ifndef checks, because they are Linux extensions and not part of 
- * standard C. Defining this switches them on.
- *
- * It MUST be the very first line. If it comes after an #include, that
- * header was already processed with the switch off, and the function
- * declaration is lost -- you get "implicit declaration of madvise". */
+ * standard C. Defining this switches them on. It MUST be the very first line.
+ * If it comes after an #include, that header was already processed with the switch off,
+ * and the function declaration is lost -- you get "implicit declaration of madvise". */
 #define _GNU_SOURCE
 
 #include <fcntl.h>      // POSIX file control: open(), O_RDONLY 
@@ -60,9 +58,7 @@ int mtx_open(const char *path, mtx_t *mx) {
 
     /* STEP 2: Find out how big the file is. */
 
-    /* struct stat holds a file's METADATA -- not its contents. Same
-     * information you see with 'ls -l': owner, permissions, times, etc.
-     * I only care about the size. */
+    /* struct stat holds a file's METADATA -- not its contents. */
     struct stat st;
 
     /* fstat() fills the struct for an already-open descriptor. */
@@ -86,7 +82,7 @@ int mtx_open(const char *path, mtx_t *mx) {
      * here. All it does is tell the kernel: "the addresses from 
      * base to base + size now correspond to this file
      * 
-     * The payoff come afterwards. When i later touch base[5000000],
+     * The payoff come afterwards. When i later touch base[...],
      * the CPU notices that page is not loaded and raises a page
      * fault. The kernel catches it, sees the note it made here,
      * fetches that chunk from disk, and resumes us. The code never 
@@ -98,8 +94,7 @@ int mtx_open(const char *path, mtx_t *mx) {
      *  PROT_READ   -> read-only (matches our const char *)
      *  MAP_PRIVATE -> Never change the file
      *  fd, 0       -> which file, starting at which offset*/
-    const char *base = mmap(NULL, (size_t)st.st_size,
-                            PROT_READ, MAP_PRIVATE, fd, 0);
+    const char *base = mmap(NULL, (size_t)st.st_size, PROT_READ, MAP_PRIVATE, fd, 0);
     
     /* The mapping keeps its own reference to the file. */
     close(fd);
@@ -141,12 +136,12 @@ int mtx_open(const char *path, mtx_t *mx) {
     /* STEP 5: Check if this is really a Matrix Market file.*/
     
     /* Reject anything too small or wrong before trusting its bytes.
-     * The length check must run first and short-circuit: tsrncmp() below
+     * The length check must run first and short-circuit: strncmp() below
      * reads 14 bytes starting at p, and without this guard a file under 
      * 14 bytes could make it read past the end of the mapping -> segfaul.*/
     if (mx->len < 15 || strncmp(p, "%%MatrixMarket", 14) != 0) {
         fprintf(stderr, "not a Matrix Market file\n");
-        munmap((void *)base, mx->len);  // Undo the mmap before leaving.
+        munmap((void *)base, mx->len);      // Undo the mmap before leaving.
         return -1;
     }
 
@@ -155,8 +150,7 @@ int mtx_open(const char *path, mtx_t *mx) {
     /* memchr searches for a byte inside a block of memory and returns
      * a pointer to the first occurrence, or NULL if there is none.
      * (Unlike strchr, it does not care about '\0' -- exactly what i
-     * need on an mmap.) It is SIMD-optimised in glibc, so it checks
-     * 16-32 bytes at a time.
+     * need on an mmap.) 
      *
      *  %%MatrixMarket matrix coordinate pattern symmetric\n% test...
      *                                                     ^
@@ -239,12 +233,7 @@ int mtx_open(const char *path, mtx_t *mx) {
 
     /* STEP 10: Read the three dimension number. */
 
-    /* The line is "rows columns entries".
-     * 
-     * i parse the digits by hand rather than calling sscanf. Here
-     * speed does not matter, ut the exact same loop will run
-     * billions of times in the main parser, so it is worth seeing
-     * it once in a quiet place. */
+    /* The line is "rows columns entries". I parse the digits by hand rather than calling sscanf. */
 
     uint64_t dims[3] = {0, 0, 0};
     for (int k = 0; k < 3; k++) {
@@ -297,11 +286,6 @@ int mtx_open(const char *path, mtx_t *mx) {
     mx->data = p;               /* question 2: where edgse start */
     /* questions 3 and 4 were answered in step 8 */
 
-    /* I do NOT validate nnz_lines against anything. That is 
-     * deliberate: i treat it as a hind for pre-allocating memory,
-     * never as truth. The real edge cound comes from counting. If i 
-     * trusted a sligthly truncated file, i would write past the end 
-     * of our arrays. */
     mx->nnz_lines = dims[2];
 
     return 0;
