@@ -2,8 +2,7 @@
 
 vid_t two_sweep(const csr_t *g, dist_t *dist, dist_t *lb_out) {
     /* Step 1: arbitrary startnig point. Vertex 0 is fine -- any
-     * choice works, the two sweeps that follow are what actually
-     * matter. */
+     * choice works. */
     vid_t r = 0;
 
     /* Step 1: BFS from an arbitrary vertex r. */
