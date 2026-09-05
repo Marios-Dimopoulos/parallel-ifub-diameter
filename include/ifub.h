@@ -8,10 +8,9 @@
  *
  * 'u' is the startiv vertex -- typically the results of two_sweep().
  * 'lb_init' is an initial lower bound already known -- typically the
- * ecc(a) value two_sweep() also produced. Passing 0 is always safe 
- * if no such bound is available.
+ * ecc(a) value two_sweep() also produced.
  * 
- * 'dist' is caller-allocated scratch space of g->n entries, reused 
+ * 'dist' is caller-allocated of g->n entries, reused 
  * across every internal BFS call this function makes.
  * 
  * Algorithm:

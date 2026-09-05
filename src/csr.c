@@ -182,7 +182,7 @@ int csr_build_from_mtx(const mtx_t *mx, csr_t *g) {
      * small array (n+1 entries, negligible size) is simpler and
      * safer than trying to reconstruct row_ptr afterwards. */
     eid_t *scratch_buffer = malloc(((size_t)n + 1) * sizeof(eid_t));
-    if (!sc) {
+    if (!scratch_buffer) {
         fprintf(stderr, "out of memory (scratch_buffer array)\n");
         free(row_ptr);
         free(col_idx);
