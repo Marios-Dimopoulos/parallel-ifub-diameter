@@ -13,10 +13,7 @@
  * The neighbours of vertex v live in col_idx at positions
  *      row_ptr[v] .. row_ptr[v+1] - 1
  * so deg(v) = row_ptr[v+1] - row_ptr[v]. row_ptr has n+1 entries so
- * the last vertex needs no special case.
- *
- * The graph is undirected, so every edge {u, v} appears twice: once
- * as v in u's list, once as u in v's list. Hence m == 2 * |E|. */
+ * the last vertex needs no special case. */
 typedef struct {
     vid_t n;
     eid_t m;
@@ -36,7 +33,6 @@ static inline eid_t csr_end(const csr_t *g, vid_t v) {
     return g->row_ptr[v + 1];
 }
 
-/* Releases both arrays and zeroes the struct. Safe to call twice. */
 void csr_free(csr_t *g);
 
 /* Builds a csr_t from an already-opened Matrix Market file, using a

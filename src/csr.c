@@ -1,5 +1,6 @@
 #include <stdlib.h>     // malloc, calloc, free
 #include <stdio.h>      // fprintf
+
 #include "csr.h"
 
 
@@ -11,11 +12,6 @@ void csr_free(csr_t *g) {
     g->n = 0;
     g->m = 0;
 }
-
-
-/* Helpers used only inside this file, not part of the public API.
- * Neither is declared in csr.h -- callers outside this file have no
- * business calling them directly. */
 
 /* Reads one unsigned integer starting at *pp, skipping any leading
  * spaces/tabs first. */
@@ -175,7 +171,7 @@ int csr_build_from_mtx(const mtx_t *mx, csr_t *g) {
      * row_ptr[v] tells us WHERE vertex v's block of neighbours
      * starts and ends, but by itself it does not tell us how many of
      * v's slots have already been filled while we walk through the
-     * file. We need a second, throwaway array for that: cursor[v] =
+     * file. We need a second, throwaway array for that: scratch_buffer[v] =
      * "the next free slot for vertex v".
      *
      * It starts as an exact copy of row_ptr. Why not just use
@@ -185,15 +181,15 @@ int csr_build_from_mtx(const mtx_t *mx, csr_t *g) {
      * the very offsets we need to return to the caller. A separate
      * small array (n+1 entries, negligible size) is simpler and
      * safer than trying to reconstruct row_ptr afterwards. */
-    eid_t *cursor = malloc(((size_t)n + 1) * sizeof(eid_t));
-    if (!cursor) {
-        fprintf(stderr, "out of memory (cursor array)\n");
+    eid_t *scratch_buffer = malloc(((size_t)n + 1) * sizeof(eid_t));
+    if (!sc) {
+        fprintf(stderr, "out of memory (scratch_buffer array)\n");
         free(row_ptr);
         free(col_idx);
         return -1;
     }
     for (vid_t v = 0; v <= n; v++) {
-        cursor[v] = row_ptr[v];
+        scratch_buffer[v] = row_ptr[v];
     }
 
     p = mx->data;   /* REWIND: go back to the very first data line and
@@ -207,13 +203,13 @@ int csr_build_from_mtx(const mtx_t *mx, csr_t *g) {
         if (i == j) continue;   
 
         /* Write j into i's next free slot, then advance that slot by one. */
-        col_idx[cursor[i]++] = j;
+        col_idx[scratch_buffer[i]++] = j;
 
         /* If duplicating, also write the mirror entry i into j's list. */
-        if (mx->is_symmetric) col_idx[cursor[j]++] = i;
+        if (mx->is_symmetric) col_idx[scratch_buffer[j]++] = i;
     }
 
-    free(cursor);   
+    free(scratch_buffer);   
 
     /* Hand the finished graph back to the caller. From this point on,
      * `g` owns row_ptr and col_idx, and is responsible for eventually
