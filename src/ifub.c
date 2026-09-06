@@ -34,10 +34,30 @@ dist_t ifub_diameter(const csr_t *g, vid_t u, dist_t lb_init, dist_t *dist, uint
         fprintf(stderr, "[debug] initial BFS done, h=%" PRIdist "\n", h);
     }
 
-    /* Explicit connectivity check. I realy on the graph being a single
-     * connected component. If it is not, some dist[v] == 1
-     * and using it as an array index below would corrupt the heap. Fail
-     * loudly and cleanly here instead of crashing deep inside malloc. */
+    /* Explicit single-connected-component check, done HERE rather than
+     * back in mtx.c, and deliberately not relying on any connectivity
+     * metadata a source file might embed in its comments (e.g. SNAP's
+     * "% Nodes in largest WCC" lines): such metadata is optimal, only
+     * present in some datasets, and is just what the data provider
+     * chose to report -- never a guarantee. This check instead asks the 
+     * one question that actually matters for correctness: did the BFS
+     * i just ran, from this specific graph's own CSR structure, reach 
+     * every vertex??  Tha is the only thing csr_build_from_mtx() cannot 
+     * already tell us -- it happily builds a perfectly valid CSR out of a 
+     * disconnected graph, since nothing about "how many components
+     * exist" is knowable from the file's header alone, before a real 
+     * traversal is performed.
+     * 
+     * I check it right here, immediately after the very first BFS,
+     * because that is the earliest point where the answer actually
+     * exists: dist[v] == DIST_UNREACHED for any v means the graph has
+     * more than one component. Skipping this check would let an 
+     * unreachable vertex's dist[v] == -1 be used as an array index a 
+     * few lines below (scratch_buffer[dist[v]]), silently corrupting
+     * memory before or after the true array bounds -- exactly the 
+     * munmap_chunk(): invalid pointer crash this check exists to 
+     * prevent, on graphs like SNAP/roadNet-PA that are 99.95% connected 
+     * but not fully. */
     for (vid_t v = 0; v < g->n; v++) {
         if (dist[v] == DIST_UNREACHED) {
             fprintf(stderr, "ifub: graph is not a single connected component "
