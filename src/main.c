@@ -19,7 +19,7 @@
  *      unreadable noise. */
 
 #include <stdio.h>
-#include <stdlibh>
+#include <stdlib.h>
 #include <string.h>
 #include <time.h>
 #include <omp.h>
@@ -116,7 +116,7 @@ int main(int argc, char **argv) {
      * professionals, i do it the right way.). */
     double t_io_start = now();
 
-    mtx_mx; 
+    mtx_t mx; 
     if (mtx_open(path, &mx) != 0) {
         /* mtx_open() already printed its own lower-level reason
          * (e.g. via perror(), if a system call like open()/mmap()
@@ -167,7 +167,7 @@ int main(int argc, char **argv) {
     dist_t *dist = malloc((size_t)g.n * sizeof(dist_t));
     if (!dist) {
         fprintf(stderr, "out of memory (dist array)\n");
-        csr_free(g);
+        csr_free(&g);
         return 1;
     }
 
