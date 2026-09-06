@@ -55,7 +55,7 @@ set -u
 # work-stealing task scheduling with per-thread work queue. This is the
 # property the assignmenet specifically asks me to use and 
 # measure, so icx/libiomp5 was chosen deliberately over gcc/libgomp.
-module load intel-openapi-compilers/2025.2.0
+module load intel-oneapi-compilers/2025.2.0
 
 # OMP_PROC_BIND=spread encourages the runtime to spread threads
 # across BOTH NUMA sockets of the node rather than packing them onto
@@ -113,8 +113,6 @@ THREAD_COUNTS="128 64 32 16 8 4 2 1"
 #                        confirmed -- this sweep is what tests that)
 #   com-DBLP          -> social/collab, already confirmed hard
 #                        (99% of vertices needed a BFS call)
-#   roadNet-PA        -> road network, expected hard by analogy with
-#                        naca0015/delaunay (same "large diameter,
 #                        narrow fringe levels" structural profile)
 #   naca0015          -> mesh/geometric, already confirmed hard AND
 #                        slow -- placed last on purpose
@@ -122,7 +120,6 @@ GRAPHS=(
     "/scratch/d/dimopoul/graphs/delaunay_n14/delaunay_n14.mtx"
     "/scratch/d/dimopoul/graphs/coPapersCiteseer/coPapersCiteseer.mtx"
     "/scratch/d/dimopoul/graphs/com-DBLP/com-DBLP.mtx"
-    "/scratch/d/dimopoul/graphs/roadNet-PA/roadNet-PA.mtx"
     "/scratch/d/dimopoul/graphs/NACA0015/NACA0015.mtx"
 )
 
