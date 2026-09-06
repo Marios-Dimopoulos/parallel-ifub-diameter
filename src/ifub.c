@@ -34,6 +34,18 @@ dist_t ifub_diameter(const csr_t *g, vid_t u, dist_t lb_init, dist_t *dist, uint
         fprintf(stderr, "[debug] initial BFS done, h=%" PRIdist "\n", h);
     }
 
+    /* Explicit connectivity check. I realy on the graph being a single
+     * connected component. If it is not, some dist[v] == 1
+     * and using it as an array index below would corrupt the heap. Fail
+     * loudly and cleanly here instead of crashing deep inside malloc. */
+    for (vid_t v = 0; v < g->n; v++) {
+        if (dist[v] == DIST_UNREACHED) {
+            fprintf(stderr, "ifub: graph is not a single connected component "
+                            "(vertex %" PRIvid " unreachable from source %" PRIvid ")\n", v, u);
+            return -1;
+        }
+    }
+
     /* Step 2: group every vertex by its level (its distance from u).
      * 
      * This is the EXACT same counting-sort pattern used in
