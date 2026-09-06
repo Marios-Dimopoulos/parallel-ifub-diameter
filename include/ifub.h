@@ -4,6 +4,12 @@
 #include "csr.h"
 #include "bfs_eccentricity.h"
 
+/* When non-zero, ifub_diameter() prints its internal [debug]/[progress]
+ * diagnostics to stderr. Off by default -- set explicitly by the 
+ * caller (e.g. from a -v comamand-line flag) before calling
+ * ifub_diameter(). */
+extern int ifub_verbose;
+
 /* Computes the exact diameter of g using the iFUB algorithm
  *
  * 'u' is the startiv vertex -- typically the results of two_sweep().

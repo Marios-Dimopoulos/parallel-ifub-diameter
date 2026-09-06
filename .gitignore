@@ -11,3 +11,6 @@ test_bfs_eccentricity
 test_two_sweep
 test_ifub
 *.txt
+selected_graphs_for_diversity.md
+ifub
+*.out
