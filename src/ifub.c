@@ -8,7 +8,11 @@
 
 #include "ifub.h"
 
-int ifub_verbose = 0;
+/* It's value is depended on the input of the user in the command line.
+ * In main.c, that input is parsed and it's value is set accordingly.
+ * (ifub_verbose is declared in ifub.h file as a global variabel --
+ * it's needed in order for being able to change from main.c file). */
+int ifub_verbose = 0;   
 
 /* ifub_diameter -- exact diameter via the iFUB algorithm, with the 
  * inner fringe loop parallelised across threads using OpenMP tasks.
@@ -26,7 +30,7 @@ dist_t ifub_diameter(const csr_t *g, vid_t u, dist_t lb_init, dist_t *dist, uint
      *
      * After this call, dist[v] holds the distance from u to every
      * vertex v, and h is the height of that BFS tree -- exactly
-     * ecc(u). Since the graph is guaranteed (by problem constraints)
+     * ecc(u). Since the graph is guaranteed (by problem constraints (and by the upcoming block of code))
      * to be a single connected component, every vertex is reached;
      * there is no DIST_UNREACHED entry anywhere in dist[]. */
     dist_t h = bfs_eccentricity(g, u, dist);
@@ -42,7 +46,7 @@ dist_t ifub_diameter(const csr_t *g, vid_t u, dist_t lb_init, dist_t *dist, uint
      * chose to report -- never a guarantee. This check instead asks the 
      * one question that actually matters for correctness: did the BFS
      * i just ran, from this specific graph's own CSR structure, reach 
-     * every vertex??  Tha is the only thing csr_build_from_mtx() cannot 
+     * every vertex??  That is the only thing csr_build_from_mtx() cannot 
      * already tell us -- it happily builds a perfectly valid CSR out of a 
      * disconnected graph, since nothing about "how many components
      * exist" is knowable from the file's header alone, before a real 
