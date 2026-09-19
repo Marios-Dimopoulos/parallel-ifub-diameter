@@ -32,5 +32,20 @@ vid_t two_sweep(const csr_t *g, dist_t *dist, dist_t *lb_out) {
     }
 
     *lb_out = ecc_a;
-    return b;
+
+   /* Walk from b back towards a along a shortest a-b path. dist[]
+    * still holds distances from a (the last BFS above), so every
+    * vertex with dist = d > 0 has at least one neighbour with 
+    * dist = d - 1. Stop when the halfway point is reached. */
+    vid_t cur = b;
+    while (dist[cur] > ecc_a / 2) {
+        for (eid_t e = csr_begin(g, cur); e < csr_end(g, cur); e++) {
+            vid_t w = g->col_idx[e];
+            if (dist[w] == dist[cur] - 1) {
+                cur = w;
+                break;
+            }
+        }
+    }
+    return cur;
 }
