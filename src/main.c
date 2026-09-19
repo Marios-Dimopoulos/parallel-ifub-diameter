@@ -189,6 +189,19 @@ int main(int argc, char **argv) {
     uint64_t bfs_count = 0;
     dist_t diameter = ifub_diameter(&g, u, lb0, dist, &bfs_count);
 
+    /* ifub_diameter() returns -1 (and has already printed its own
+     * reason to stderr, e.g. "graph is not a single connected component
+     * ") on failure. Without this check, the report and
+     * CSV line below would print "diameter : -1" as if it were a 
+     * real answer and the program would still exit 0 -- silently 
+     * poisoning any batch sweep that greps the CSV line out. */
+    if (diameter == -1) {
+        fprintf(stderr, "failed to compute diameter for %s\n", path);
+        free(dist);
+        csr_free(&g);
+        return 1;
+    }
+
     double t_compute_end = now();
 
     /* Report
@@ -206,8 +219,8 @@ int main(int argc, char **argv) {
      * invocation of the program anywhere to produce the CSV line. */
     printf("graph                  : %s\n", path);
     printf("threads                : %d\n", nthreads);
-    printf("vertices                : %" PRIvid "\n", g.n);
-    printf("edges (directed entries): %" PRIeid "\n", g.m);
+    printf("vertices               : %" PRIvid "\n", g.n);
+    printf("edges(directed entries): %" PRIeid "\n", g.m);
     printf("two-sweep start vertex : %" PRIvid "\n", u);
     printf("two-sweep lower bound  : %" PRIdist "\n", lb0);
     printf("diameter               : %" PRIdist "\n", diameter);

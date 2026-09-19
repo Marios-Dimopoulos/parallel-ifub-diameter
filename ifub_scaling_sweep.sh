@@ -71,6 +71,8 @@ export OMP_PROC_BIND=spread
 # two threads on the same physical core.
 export OMP_PLACES=cores
 
+
+### This might be useless. Check it later.
 # Required for the cooperative early-stop logic inside ifub_diameter():
 # every task checks a shared stop_flag before starting its own BFS, 
 # and that flag is only meaningful once OpenMP's cancellation
@@ -169,7 +171,19 @@ for graph in "${GRAPHS[@]}"; do
         #   4. ">> $MASTER_CSV"   appends (not overwrites) the
         #                         resulting single line as one new
         #                         row of the growing master file
-        "$BIN" "$graph" 2>/dev/null | grep '^CSV,' | sed 's/^CSV,//' >> "$MASTER_CSV"
+
+        # numactl --interleave=all sets a NUMA memory policyfor the 
+        # program: instead of Linux's default "first-touch" (a page 
+        # lives on the node of the thread that first writes it, which
+        # would put the whole CSR graph -- built by ONE thread in 
+        # csr_build_from_mtx() -- on a single socket), pages are handed
+        # out round-robin across ALL NUMA nodes. The graph is thereby
+        # spread over both sockets-memory controllers, so the BFS
+        # threads of both sockets draw bandwidth from both at once,
+        # rather than all of them hammering one socket's controllers.
+        # It only sets the memory policy, thread placement is still
+        # controlled by OMP_PROC_BIND / OMP_PLACES above.
+        numactl --interleave=all "$BIN" "$graph" 2>/dev/null | grep '^CSV,' | sed 's/^CSV,//' >> "$MASTER_CSV"
     done
 done
 

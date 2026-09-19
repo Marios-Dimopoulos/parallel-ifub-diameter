@@ -110,7 +110,7 @@ int mtx_open(const char *path, mtx_t *mx) {
      * only the kernel's strategy. It is free to ignore them, which
      * is why i do not check the return value.
      *
-     * MADV_SEQUENTIAL: "I will read fronτ to back, in order."
+     * MADV_SEQUENTIAL: "I will read front to back, in order."
      *      -> the kernel does aggressive readahead: when i ask for
      *         page 100 it also fetches 101..150 in advance, and it 
      *         drops pages i already passed from the cache sooner.
