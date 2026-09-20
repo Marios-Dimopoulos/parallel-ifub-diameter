@@ -4,5 +4,5 @@ data/
 selected_graphs_for_diversity.md
 ifub
 *.out
-results/all_results.csv
+results/results_of_smaller_graphs.csv
 outcome_from_a_run.csv
