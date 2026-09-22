@@ -8,8 +8,8 @@ vid_t two_sweep(const csr_t *g, dist_t *dist, dist_t *lb_out) {
     /* Step 1: BFS from an arbitrary vertex r. */
     dist_t ecc_r = bfs_eccentricity(g, r, dist);
 
-    /* The target value (ecc_r) is already known, so i just 
-     * look for the first vertex that attains it -- guaranteed 
+    /* The target value (ecc_r) is already known, so i just
+     * look for the first vertex that attains it -- guaranteed
      * to exist, since ecc_r is by definition the max value inside dist[]. */
     vid_t a = r;
     for (vid_t v = 0; v < g->n; v++) {
@@ -35,7 +35,7 @@ vid_t two_sweep(const csr_t *g, dist_t *dist, dist_t *lb_out) {
 
    /* Walk from b back towards a along a shortest a-b path. dist[]
     * still holds distances from a (the last BFS above), so every
-    * vertex with dist = d > 0 has at least one neighbour with 
+    * vertex with dist = d > 0 has at least one neighbour with
     * dist = d - 1. Stop when the halfway point is reached. */
     vid_t cur = b;
     while (dist[cur] > ecc_a / 2) {
@@ -48,4 +48,10 @@ vid_t two_sweep(const csr_t *g, dist_t *dist, dist_t *lb_out) {
         }
     }
     return cur;
+
+    /* TEMPORARY: reverted to the peripheral vertex b for the
+     * peripheral-vs-midpoint comparison run. Restore the midpoint
+     * walk below once the peripheral-start results are collected. */
+    //return b;
+
 }
