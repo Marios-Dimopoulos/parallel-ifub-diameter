@@ -5,7 +5,7 @@
 #include <stdint.h>
 #include "types.h"
 
-/*A memory-mapped Matrix Market file, with its header already parsed.
+/* A memory-mapped Matrix Market file, with its header already parsed.
  * Nothing here owns heap memory: `base` points into a mapping created
  * by mmap(), and `data` points somewhere inside it. Reading through
  * these pointers is what triggers the actual disk I/O, page by page,
