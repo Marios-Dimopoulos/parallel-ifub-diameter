@@ -1,20 +1,16 @@
-/* csr.c -- Builds a csr_t from an already-opened Matrix Market file, using a
- * two-pass strategy:
- * 
- *      pass 1: count each vertex's degree
- *      prefix sum: turn degress into row_ptr
- *      pass 2: place each neigbour into its slot in col_idx
+/* csr.c -- builds the CSR (Compressed Sparse Row) graph from a parsed .mtx.
  *
- * Whether an entry (i, j) needs to be duplicataed is decided
- * from mx->is_symmetric: a symmetric banner means the file
- * stores only one triangle, so both directions must be inserted.
+ * Two passes over the memory-mapped file: pass 1 counts each vertex's degree
+ * and a prefix sum turns the counts into row_ptr; pass 2 places every
+ * neighbour into its slot of col_idx. A symmetric banner means the file
+ * stores only one triangle, so each edge is inserted in both directions;
+ * self-loops are dropped.
  *
- * On success fills 'g' and returns 0. 'g' is then owned by the
- * caller and must eventually be released with csr_free(). On
- * failure returns -1 and 'g' is left untouched. */
+ * csr_build_from_mtx() returns 0 and fills 'g' on success (the caller
+ * releases it with csr_free()), or -1 on failure with 'g' left untouched. */
 
-#include <stdlib.h>     
-#include <stdio.h>      
+#include <stdlib.h>
+#include <stdio.h>
 
 #include "csr.h"
 
@@ -31,10 +27,10 @@ void csr_free(csr_t *g) {
 /* Reads one unsigned integer starting at *pp, skipping any leading
  * spaces/tabs first. */
 static uint64_t parse_uint(const char **pp, const char *end) {
-    const char *p = *pp;                              
+    const char *p = *pp;
 
     while (p < end && (*p == ' ' || *p == '\t')) {
-        p++;                                           
+        p++;
     }
 
     uint64_t v = 0;
@@ -42,20 +38,19 @@ static uint64_t parse_uint(const char **pp, const char *end) {
         v = v * 10 + (uint64_t)(*p++ - '0');
     }
 
-    *pp = p;            
+    *pp = p;
     return v;
 }
 
 
-/* Reads one data line of the form "i j" (maybe followed by a
- * value column i don't care about), and:
+/* Reads one data line of the form "i j" (maybe followed by a value column
+ * that is ignored), and:
  *   - converts from the file's 1-based indexing to 0-based vid_t
  *   - validates that both indices are in range
  *   - advances *pp past the entire line, ready for the next call
  *
- * Returns 0 on success, -1 if the line is malformed (index is 0,
- * meaning the file used 0-based numbering or is corrupt; or index
- * is bigger than n, the declared matrix dimension). */
+ * Returns 0 on success, -1 if the line is malformed (an index is 0, meaning
+ * the file is corrupt, or bigger than n, the declared matrix dimension). */
 static int parse_edge_line(const char **pp, const char *end,
                             vid_t n, vid_t *out_i, vid_t *out_j) {
     const char *p = *pp;
@@ -63,8 +58,8 @@ static int parse_edge_line(const char **pp, const char *end,
     uint64_t raw_i = parse_uint(&p, end);
     uint64_t raw_j = parse_uint(&p, end);
 
-    /* Matrix Market indices are always 1-based by definition of the
-     * format. raw_i == 0 would mean either a corrupt file. */
+    /* Matrix Market indices are 1-based by definition of the format, so a
+     * 0 means a corrupt file. */
     if (raw_i == 0 || raw_j == 0 || raw_i > n || raw_j > n) {
         fprintf(stderr, "malformed or out-of-range entry: %llu %llu\n",
                 (unsigned long long)raw_i, (unsigned long long)raw_j);
@@ -75,54 +70,39 @@ static int parse_edge_line(const char **pp, const char *end,
     *out_i = (vid_t)(raw_i - 1);
     *out_j = (vid_t)(raw_j - 1);
 
-    /* Skip whatever is left on this line -- a value column, if the
-     * file has one -- without caring what it contains. I only need
-     * the graph's structure, never edge weights. */
+    /* Skip whatever is left on this line (a value column, if any): only
+     * the graph's structure is needed, never edge weights. */
     while (p < end && *p != '\n') {
         p++;
     }
-    *pp = (p < end) ? p + 1 : end;   
+    *pp = (p < end) ? p + 1 : end;
 
     return 0;
 }
 
 
-/* csr_build_from_mtx -- the actual two-pass CSR construction.
- *
- * Overall plan:
- *   PASS 1        : count how many neighbours each vertex has
- *   PREFIX SUM    : turn those counts into row_ptr offsets
- *   PASS 2        : re-read the same lines, and this time actually
- *                   write each neighbour into its slot in col_idx. */
 int csr_build_from_mtx(const mtx_t *mx, csr_t *g) {
-    const char *end = mx->base + mx->len;   
-    vid_t n = mx->n;                        
-                                            
+    const char *end = mx->base + mx->len;
+    vid_t n = mx->n;
 
-    /* PASS 1: count each vertex's degree
-     *
-     * I walk every data line once. For each edge (i,j) i increment a per-vertex counter. 
-     * If i need to duplicate (is_symmetric flag is up), i increment BOTH i's and j's
-     * counters, since the edge will end up in both adjacency lists.
-     * If the file already lists both directions (is_symmetric flag is down), i only
-     * increment i's counter here -- the matching increment for j
-     * will happen naturally when i later read the line that lists
-     * the same edge from j's side. */
 
-    /* calloc, not malloc: every counter must start at exactly 0, and
-     * calloc guarantees zeroed memory (plain malloc would hand back
-     * whatever garbage bytes happened to be there.
+    /* PASS 1: count each vertex's degree.
      *
-     * Size is (n+1), not n: i am about to reuse this exact array
-     * as row_ptr, which needs that extra trailing slot so the last
-     * vertex doesn't need special-casing */
+     * For each edge (i,j) i increment i's counter. If the file stores only
+     * one triangle (is_symmetric), i also increment j's, since the edge ends
+     * up in both adjacency lists. Otherwise the file already lists both
+     * directions, and j's counter is incremented when its own line is read.
+     *
+     * calloc: the counters must start at zero. Size n+1 because this array
+     * becomes row_ptr, whose extra last slot means the last vertex needs no
+     * special case. */
     eid_t *degree = calloc((size_t)n + 1, sizeof(eid_t));
     if (!degree) {
         fprintf(stderr, "out of memory (degree array, %" PRIvid " vertices)\n", n);
         return -1;
     }
 
-    const char *p = mx->data;       // mx->data points at the first character of the data.              
+    const char *p = mx->data;       // mx->data points at the first character of the data.
     uint64_t line_no = 0;           // only used to make error messages useful.
 
     while (p < end) {
@@ -134,34 +114,31 @@ int csr_build_from_mtx(const mtx_t *mx, csr_t *g) {
         }
         line_no++;
 
-        /* A self-loop (i == j) contributes nothing to BFS distances
-         * between DIFFERENT vertices, so i simply drop it here.
-         * Note i still consumed the line above (p already advanced
-         * past it) -- i just don't count it towards any degree. */
+        /* A self-loop (i == j) does not affect distances between different
+         * vertices, so it is dropped (the line is still consumed). */
         if (i == j) continue;
 
         degree[i]++;
         if (mx->is_symmetric) degree[j]++;
     }
 
-    /* PREFIX SUM: degree[] is transformed IN PLACE into row_ptr[] */
+    /* PREFIX SUM: degree[] is transformed IN PLACE into row_ptr[]. */
     eid_t running = 0;
     for (vid_t v = 0; v <= n; v++) {
-        eid_t d = degree[v];   
-        degree[v] = running;   
-        running += d;          
+        eid_t d = degree[v];
+        degree[v] = running;
+        running += d;
     }
     /* After the loop, degree[n] == running == the grand total, which
      * is exactly m, the total number of directed entries in the CSR. */
 
     eid_t *row_ptr = degree;    // renaming for readability from here on.
-                                                           
+
     eid_t m = row_ptr[n];
 
     if (m == 0) {
-        /* Can happen if every stored entry was a self-loop, or the
-         * matrix had zero off-diagonal entries -- not a graph i can
-         * compute a diameter for. */
+        /* Every stored entry was a self-loop, or there were no off-diagonal
+         * entries: no diameter can be computed. */
         fprintf(stderr, "graph has no edges after dropping self-loops\n");
         free(row_ptr);
         return -1;
@@ -174,21 +151,12 @@ int csr_build_from_mtx(const mtx_t *mx, csr_t *g) {
         return -1;
     }
 
-    /* PASS 2: place each neighbour into its slot in col_idx
+    /* PASS 2: place each neighbour into its slot in col_idx.
      *
-     * row_ptr[v] tells me WHERE vertex v's block of neighbours
-     * starts and ends, but by itself it does not tell me how many of
-     * v's slots have already been filled while i walk through the
-     * file. I need a second, throwaway array for that: scratch_buffer[v] =
-     * "the next free slot for vertex v".
-     *
-     * It starts as an exact copy of row_ptr. Why not just use
-     * row_ptr itself as the write position and fix it up afterwards?
-     * Because by the time i finish, row_ptr[v] would have been
-     * pushed all the way to row_ptr[v+1] -- I would have destroyed
-     * the very offsets i need to return to the caller. A separate
-     * small array (n+1 entries, negligible size) is simpler and
-     * safer than trying to reconstruct row_ptr afterwards. */
+     * row_ptr[v] says where v's block starts, but not how many of its slots
+     * are already filled. scratch_buffer[v] (a copy of row_ptr) holds "the
+     * next free slot of v". row_ptr itself cannot be the cursor: it would end
+     * up shifted to row_ptr[v+1] and the offsets would be lost. */
     eid_t *scratch_buffer = malloc(((size_t)n + 1) * sizeof(eid_t));
     if (!scratch_buffer) {
         fprintf(stderr, "out of memory (scratch_buffer array)\n");
@@ -200,15 +168,14 @@ int csr_build_from_mtx(const mtx_t *mx, csr_t *g) {
         scratch_buffer[v] = row_ptr[v];
     }
 
-    p = mx->data;   /* REWIND: go back to the very first data line and
-                     * re-parse the exact same bytes i already read in PASS 1. */
-                     
+    p = mx->data;   /* REWIND to the first data line and re-parse the same
+                     * bytes (already validated in pass 1). */
+
     while (p < end) {
         vid_t i, j;
-        // Already validated in pass 1.
         parse_edge_line(&p, end, n, &i, &j);
 
-        if (i == j) continue;   
+        if (i == j) continue;
 
         /* Write j into i's next free slot, then advance that slot by one. */
         col_idx[scratch_buffer[i]++] = j;
@@ -217,11 +184,9 @@ int csr_build_from_mtx(const mtx_t *mx, csr_t *g) {
         if (mx->is_symmetric) col_idx[scratch_buffer[j]++] = i;
     }
 
-    free(scratch_buffer);   
+    free(scratch_buffer);
 
-    /* Hand the finished graph back to the caller. From this point on,
-     * `g` owns row_ptr and col_idx, and is responsible for eventually
-     * calling csr_free() on it. */
+    /* From this point on, `g` owns row_ptr and col_idx. */
     g->n = n;
     g->m = m;
     g->row_ptr = row_ptr;

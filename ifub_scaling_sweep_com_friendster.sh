@@ -14,11 +14,6 @@
 # higher speedup.
 
 # --- Slurm resource request directives ---
-# These lines are not shell comments -- sbatch parses any
-# line starting with "#SBATCH" out of this file before the script
-# ever runs, and turns them into the actual resource request. They
-# must appear before the first real shel command in the file, or
-# Slurm stops reading them.
 #SBATCH --job-name=ifub_sweep_friendster
 #SBATCH --partition=rome        # The only partition with the 128-core
                                 # AMD EPYC 7662 nodes i benchmarked on.

@@ -11,9 +11,9 @@
 # separate human-readable log would just be a redundant copy of 
 # the same data in harder-to-parse format.
 # 
-# com-Friendster is deliberately NOT included in this sweep: at 
-# 65.6M vertices it needs its own job with a much larger --time
-# budget.
+# com-Friendster and NACA0015 are deliberately NOT included in this sweep:
+# they need their own jobs with a much larger --time budget (see
+# ifub_scaling_sweep_com_friendster.sh and ifub_scaling_sweep_naca0015.sh).
 
 # --- Slurm resource request directives ---
 # These lines are not shell comments -- sbatch parses any
@@ -74,13 +74,6 @@ export OMP_PROC_BIND=spread
 export OMP_PLACES=cores
 
 
-### This might be useless. Check it later.
-# Required for the cooperative early-stop logic inside ifub_diameter():
-# every task checks a shared stop_flag before starting its own BFS, 
-# and that flag is only meaningful once OpenMP's cancellation
-# machinery is switched on cluster-wide via this enviroment variable.
-export OMP_CANCELLATION=true
-
 # --- Configuration ---
 BIN=./ifub              # The compiled binary, expected to already
                         # exist in the current working directory
@@ -109,17 +102,12 @@ echo "graph,threads,vertices,edges,two_sweep_start,two_sweep_lb,diameter,bfs_cou
 # informative ones.
 THREAD_COUNTS="128 64 32 16 8 4 2 1"
 
-# Graphs to test, orderd from EASIEST to HARDEST for iFUB to
-# converge on, based on prior exploratory runs:
-#   delaunay_n14      -> mesh/geometric, already confirmed hard,
-#                        but small and fast (seconds, not minutes)
-#   coPapersCiteseer  -> citation/collab, HYPOTHESISED easy (not yet
-#                        confirmed -- this sweep is what tests that)
-#   com-DBLP          -> social/collab, already confirmed hard
-#                        (99% of vertices needed a BFS call)
-#                        narrow fringe levels" structural profile)
-#   naca0015          -> mesh/geometric, already confirmed hard AND
-#                        slow -- placed last on purpose
+# Graphs to test (all single connected components), one per structure type:
+#   com-Amazon              -> product co-purchase network
+#   luxembourg_osm          -> road network
+#   m14b                    -> 3D finite-element mesh
+#   Spielman_k100           -> near-tree (graph Laplacian)
+#   preferentialAttachment  -> synthetic scale-free graph
 GRAPHS=(
     "/scratch/d/dimopoul/graphs/com-Amazon/com-Amazon.mtx"
     "/scratch/d/dimopoul/graphs/luxembourg_osm/luxembourg_osm.mtx"
@@ -152,28 +140,19 @@ for graph in "${GRAPHS[@]}"; do
         # thread count used by the NEXT invocation of the program.
         export OMP_NUM_THREADS=$t
 
-        # Run the program exactly once. Its normal (non -v) stdout
-        # includes exactly one line starting with the literal text
-        # "CSV,", holding every field we need, already
-        # comma-separated in the same column order as the header
-        # written above. The pipeline below:
-        #   1. "2>/dev/null"      discards stderr entirely (harmless
-        #                         here since -v/verbose mode, which
-        #                         is the only thing that writes to
-        #                         stderr, is never enabled by this
-        #                         script)
-        #   2. "grep '^CSV,'"     keeps ONLY the one line that starts
-        #                         with "CSV," out of the ~10 lines
-        #                         the program actually prints
-        #   3. "sed 's/^CSV,//'"  strips that leading "CSV," prefix,
-        #                         since the master file's header row
-        #                         (written once, above) already
-        #                         labels every column -- repeating
-        #                         the literal word "CSV" on every
-        #                         single data row would be redundant
-        #   4. ">> $MASTER_CSV"   appends (not overwrites) the
-        #                         resulting single line as one new
-        #                         row of the growing master file
+        # Run the program exactly once. Its stdout includes exactly one line
+        # starting with the literal text "CSV,", holding every field we
+        # need, already comma-separated in the same column order as the
+        # header written above. The pipeline below:
+        #   1. "grep '^CSV,'"     keeps ONLY that line out of the ~10 lines
+        #                         the program prints
+        #   2. "sed 's/^CSV,//'"  strips the "CSV," prefix, since the header
+        #                         row (written once, above) already labels
+        #                         every column
+        #   3. ">> $MASTER_CSV"   appends the line as one new row of the
+        #                         master file
+        # stderr is not redirected, so any error message ends up in the
+        # Slurm output file (slurm_*.out).
         "$BIN" "$graph" | grep '^CSV,' | sed 's/^CSV,//' >> "$MASTER_CSV"
     done
 done

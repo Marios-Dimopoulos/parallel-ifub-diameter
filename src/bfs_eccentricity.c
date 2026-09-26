@@ -1,31 +1,25 @@
-/* bfs_eccentricity.c -- Runs a single-source BFS from 'source' over 'g'.
+/* bfs_eccentricity.c -- single-source BFS over the CSR graph.
  *
- * 'dist' must already be allocated by the caller with g->n entries.
- * On return, dist[v] holds the number of edges on the shortest path
- * from 'source' to 'v', or DIST_UNREACHED if 'v' is not reachable. 
- * dist[source] is always 0.
- * 
- * Returns the eccentricity of 'source': the largest distance found,
- * over all reached v. This is exactly what the 
- * later 2-sweep / iFUB algorithm needs from every BFS they run. */
+ * Fills dist[] (caller-allocated, g->n entries) with the distance from
+ * 'source' to every vertex (DIST_UNREACHED for vertices in other components)
+ * and returns the eccentricity of 'source': the largest distance found.
+ * Returns -1 if the internal queue cannot be allocated. dist[] doubles as
+ * the visited marker and the function keeps no global state, so it can run
+ * concurrently from several threads as long as each passes its own dist[]. */
 
 #include <stdlib.h>
 #include <stdio.h>
 #include "bfs_eccentricity.h"
 
 dist_t bfs_eccentricity(const csr_t *g, vid_t source, dist_t *dist) {
-    /* Every vertex starts "not reached". I mark them all up front
-     * rather than trying to track "seen vs unseen" seprately --
-     * dist[] itself doubles as the visited marker: dist[v] ==
-     * DIST_UNREACHED means "never queued", anything else means
-     * "already queued, do not queue again". */
+    /* Every vertex starts "not reached". dist[v] == DIST_UNREACHED means
+     * "never queued", anything else means "already queued". */
     for (vid_t v = 0; v < g->n; v++) {
         dist[v] = DIST_UNREACHED;
     }
 
-    /* Each vertex is enqueued at most once in a BFS, so a 
-     * plain array of size n with two moving indices is enough --
-     * no need for a circular buffer. */
+    /* Each vertex is enqueued at most once, so a plain array of size n with
+     * two moving indices is enough -- no circular buffer needed. */
     vid_t *queue = malloc((size_t)g->n * sizeof(vid_t));
     if (!queue) {
         fprintf(stderr, "bfs: out of memory (queue, %" PRIvid " vertices)\n", g->n);
@@ -39,10 +33,8 @@ dist_t bfs_eccentricity(const csr_t *g, vid_t source, dist_t *dist) {
 
     dist_t eccentricity = 0;    // Largest distance seen so far.
 
-    /* Standard BFS: pull a vertex off the front, look at its 
-     * neighbours, push the unvisited ones onto the back. Because
-     * every edge is examined from the vertex that discovers it, and 
-     * every vertex is pushed exactly once. */
+    /* Standard BFS: pull a vertex off the front, push its unvisited
+     * neighbours onto the back. Every vertex is pushed exactly once. */
     while (head < tail) {
         vid_t u = queue[head++];
         dist_t du = dist[u];
@@ -58,9 +50,9 @@ dist_t bfs_eccentricity(const csr_t *g, vid_t source, dist_t *dist) {
                 queue[tail++] = v;
             }
         }
-        
+
     }
-    
+
     free(queue);
     return eccentricity;
 }

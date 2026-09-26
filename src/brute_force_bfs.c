@@ -68,28 +68,26 @@ dist_t brute_force_diameter(const csr_t *g, int show_progress) {
 
         dist_t local_diam = -1;
 
-        /* Every thread must reach the worksharing loop, even after a
-         * failure, so the body just skips the work. */
+        /* OpenMP does not allow "break" in a worksharing loop, so after a
+         * failure the remaining iterations just skip the work. */
         #pragma omp for schedule(dynamic, 16)
-        {   for (int64_t s = 0; s < n; s++) {
-                // I cannot use "break" to exit the loop on failure, because that would leave some thread behind.
-                if (!dist || atomic_load(&failed)) {
-                    continue;
-                }
+        for (int64_t s = 0; s < n; s++) {
+            if (!dist || atomic_load(&failed)) {
+                continue;
+            }
 
-                dist_t e = bfs_eccentricity(g, (vid_t)s, dist);
-                if (e < 0) {
-                    atomic_store(&failed, 1);
-                    continue;
-                }
-                if (e > local_diam) {
-                    local_diam = e;
-                }
+            dist_t e = bfs_eccentricity(g, (vid_t)s, dist);
+            if (e < 0) {
+                atomic_store(&failed, 1);
+                continue;
+            }
+            if (e > local_diam) {
+                local_diam = e;
+            }
 
-                uint64_t c = atomic_fetch_add(&done, 1) + 1;
-                if (show_progress && c % step == 0) {
-                    fprintf(stderr, "  [progress] %" PRIu64 " / %" PRId64 " BFS done\n", c, n);
-                }
+            uint64_t c = atomic_fetch_add(&done, 1) + 1;
+            if (show_progress && c % step == 0) {
+                fprintf(stderr, "  [progress] %" PRIu64 " / %" PRId64 " BFS done\n", c, n);
             }
         }
         #pragma omp critical
