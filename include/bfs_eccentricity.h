@@ -12,16 +12,6 @@ typedef int32_t dist_t;
 #define DIST_UNREACHED (-1)
 #define PRIdist PRId32
 
-/* Runs a single-source BFS from 'source' over 'g'.
- *
- * 'dist' must already be allocated by the caller with g->n entries.
- * On return, dist[v] holds the number of edges on the shortest path
- * from 'source' to 'v', or DIST_UNREACHED if 'v' is not reachable. 
- * dist[source] is always 0.
- * 
- * Returns the eccentricity of 'source': the largest distance found,
- * over all reached v. This is exactly what the 
- * later 2-sweep / iFUB algorithm needs from every BFS they run. */
 dist_t bfs_eccentricity(const csr_t *g, vid_t source, dist_t *dist);
 
 #endif

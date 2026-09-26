@@ -1,3 +1,18 @@
+/* csr.c -- Builds a csr_t from an already-opened Matrix Market file, using a
+ * two-pass strategy:
+ * 
+ *      pass 1: count each vertex's degree
+ *      prefix sum: turn degress into row_ptr
+ *      pass 2: place each neigbour into its slot in col_idx
+ *
+ * Whether an entry (i, j) needs to be duplicataed is decided
+ * from mx->is_symmetric: a symmetric banner means the file
+ * stores only one triangle, so both directions must be inserted.
+ *
+ * On success fills 'g' and returns 0. 'g' is then owned by the
+ * caller and must eventually be released with csr_free(). On
+ * failure returns -1 and 'g' is left untouched. */
+
 #include <stdlib.h>     
 #include <stdio.h>      
 

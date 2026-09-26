@@ -1,3 +1,14 @@
+/* bfs_eccentricity.c -- Runs a single-source BFS from 'source' over 'g'.
+ *
+ * 'dist' must already be allocated by the caller with g->n entries.
+ * On return, dist[v] holds the number of edges on the shortest path
+ * from 'source' to 'v', or DIST_UNREACHED if 'v' is not reachable. 
+ * dist[source] is always 0.
+ * 
+ * Returns the eccentricity of 'source': the largest distance found,
+ * over all reached v. This is exactly what the 
+ * later 2-sweep / iFUB algorithm needs from every BFS they run. */
+
 #include <stdlib.h>
 #include <stdio.h>
 #include "bfs_eccentricity.h"

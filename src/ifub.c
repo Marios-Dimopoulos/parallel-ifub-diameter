@@ -1,3 +1,15 @@
+/* ifub_diameter -- exact diameter via the iFUB algorithm, with the 
+ * inner fringe loop parallelised across threads using OpenMP tasks.
+ *
+ * 'u': Starting vertex, typically the output of two_sweep().
+ * 'lb_init': An already-known lower bound, typically two_sweep()'s
+ *            ecc(a) value.
+ * 'dist': Caller-allocated of g->n entries, used ONLY for the very 
+ *         first, single-threaded BFS below -- every later, parallel
+ *         BFS uses its own private slice of dist_pool instead. 
+ * 'bfs_count': caller-allocated ooutput. Filled with the exact number
+ *              of BFS calls actually performed.*/
+
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
@@ -12,17 +24,6 @@
  * it's needed in order for being able to change from main.c file). */
 int ifub_verbose = 0;   
 
-/* ifub_diameter -- exact diameter via the iFUB algorithm, with the 
- * inner fringe loop parallelised across threads using OpenMP tasks.
- *
- * 'u': Starting vertex, typically the output of two_sweep().
- * 'lb_init': An already-known lower bound, typically two_sweep()'s
- *            ecc(a) value.
- * 'dist': Caller-allocated of g->n entries, used ONLY for the very 
- *         first, single-threaded BFS below -- every later, parallel
- *         BFS uses its own private slice of dist_pool instead. 
- * 'bfs_count': caller-allocated ooutput. Filled with the exact number
- *              of BFS calls actually performed.*/
 dist_t ifub_diameter(const csr_t *g, vid_t u, dist_t lb_init, dist_t *dist, uint64_t *bfs_count) {
     /* Step 1: one ordinary, single-threaded BFS from u.
      *
