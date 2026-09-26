@@ -8,9 +8,7 @@
  *  3. Does each stored entry mean one edge or two?
  *  4. Is there a third column of values to skip?
  *
- * It does NOT read a single edge.
- * Think of it as opening a book and reading only the table of 
- * contents to find the page where the story begins. */
+ * It does NOT read a single edge. */
 
 /* A "feature test macro". System headers hide some functions behind
  * #ifndef checks, because they are Linux extensions and not part of 
@@ -19,13 +17,13 @@
  * and the function declaration is lost -- you get "implicit declaration of madvise". */
 #define _GNU_SOURCE
 
-#include <fcntl.h>      // POSIX file control: open(), O_RDONLY 
-#include <unistd.h>     // POSIX misc: close() 
-#include <ctype.h>      // standard C character tools: tolower()    
-#include <string.h>     // standard C: strncmp, strstr, memchr, memcpy 
-#include <stdio.h>      // standard C: fprintf, perror 
-#include <sys/mman.h>   // POSIX memory mapping: mmap, munmap, madvise 
-#include <sys/stat.h>   // POSIX file metadata: fstat, struct stat 
+#include <fcntl.h>      
+#include <unistd.h>     
+#include <ctype.h>      
+#include <string.h>     
+#include <stdio.h>      
+#include <sys/mman.h>   
+#include <sys/stat.h>   
 
 #include "mtx.h"
 
@@ -47,7 +45,7 @@ int mtx_open(const char *path, mtx_t *mx) {
     /* open() is the raw system call. I use it instead of the more 
      * familiar fopen() for two reasons:
      *  - mmap() bellow requires an int file descriptor, not a FILE*
-     *  - FILE* exists to give us a buffer that copies data around. 
+     *  - FILE* exists to give a buffer that copies data around. 
      *    I want the exact opposite, zero copies.
      * It returns a small integer, the "handle" for this open file. */
     int fd = open(path, O_RDONLY);
@@ -68,6 +66,7 @@ int mtx_open(const char *path, mtx_t *mx) {
         return -1;
     }
 
+    /* If the size of the file is zero bytes, return -1. */
     if (st.st_size == 0) {
         fprintf(stderr, "empty file\n");
         close(fd);
@@ -76,22 +75,20 @@ int mtx_open(const char *path, mtx_t *mx) {
 
     /* STEP 3: Map the file into memory. */
 
-    /* This is the key line of the whole file
-     * 
-     * mmap() does NOT read anything. Zero bytes come off the disk
+    /* mmap() does NOT read anything. Zero bytes come off the disk
      * here. All it does is tell the kernel: "the addresses from 
      * base to base + size now correspond to this file
      * 
      * The payoff come afterwards. When i later touch base[...],
      * the CPU notices that page is not loaded and raises a page
      * fault. The kernel catches it, sees the note it made here,
-     * fetches that chunk from disk, and resumes us. The code never 
-     * notices. So big file (tens of GB) becomes an ordinary char array.
+     * fetches that chunk from disk, and resumes. So big file (tens
+     * of GB) becomes an ordinary char array.
      * 
      * Arguments:
      *  NULL        -> kernel picks the address
      *  st.st_size  -> how many bytes to map
-     *  PROT_READ   -> read-only (matches our const char *)
+     *  PROT_READ   -> read-only (matches const char *)
      *  MAP_PRIVATE -> Never change the file
      *  fd, 0       -> which file, starting at which offset*/
     const char *base = mmap(NULL, (size_t)st.st_size, PROT_READ, MAP_PRIVATE, fd, 0);
@@ -117,7 +114,7 @@ int mtx_open(const char *path, mtx_t *mx) {
      *
      * MADV_WILLNEED: "I will need all of it."
      *      -> the kernel starts pulling it in right now, in the
-     *         background, instead of waiting for us to fault.
+     *         background, instead of waiting for me to fault.
      *
      * This matters a lot here: the data lives on /scratch, which is
      * NFS. Without these hints every page fault is a separate 
@@ -183,9 +180,7 @@ int mtx_open(const char *path, mtx_t *mx) {
 
     /* STEP 8: Decode the banner. */
 
-    /* A banner has five fields. strstr(haystack, needle) returns
-     * a pointer to the first place the needle appears inside the
-     * haystack, or NULL. I only care whether is is NULL or not. */
+    /* A banner has five fields. */
     
     /* "coordinate" = a list of "i j" entries (sparse).
      * The alternative, "array", is a dense matrix. I only do sparse. */
@@ -304,13 +299,7 @@ void mtx_close(mtx_t *mx) {
  *
  * Goes to stderr, not stdout, on purpose: that way the program's 
  * real output can be redirected to a file without diagnostics 
- * getting mixed into it.
- *
- * The %" PRIvid " spelling loooks odd but is just string
- * concantenation. PRIvid expands to "u", so the compiler sees
- * "vertices: %" "u" "\n" and glues it into "vertices: %u\n".
- * The point is that if vid_t ever changes to 64-bit, every printf
- * fixes itself instead of silently printing garbage. */
+ * getting mixed into it. */
 void mtx_describe(const mtx_t *mx) {
     fprintf(stderr,
         "file    : %.2f GB\n"
