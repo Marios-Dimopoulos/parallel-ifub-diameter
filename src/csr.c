@@ -1,5 +1,5 @@
-#include <stdlib.h>     // malloc, calloc, free
-#include <stdio.h>      // fprintf
+#include <stdlib.h>     
+#include <stdio.h>      
 
 #include "csr.h"
 
@@ -33,8 +33,8 @@ static uint64_t parse_uint(const char **pp, const char *end) {
 
 
 /* Reads one data line of the form "i j" (maybe followed by a
- * value column we don't care about, e.g. "i j 3.14"), and:
- *   - converts from the file's 1-based indexing to our 0-based vid_t
+ * value column i don't care about, e.g. "i j 3.14"), and:
+ *   - converts from the file's 1-based indexing to 0-based vid_t
  *   - validates that both indices are in range
  *   - advances *pp past the entire line, ready for the next call
  *
@@ -49,8 +49,7 @@ static int parse_edge_line(const char **pp, const char *end,
     uint64_t raw_j = parse_uint(&p, end);
 
     /* Matrix Market indices are always 1-based by definition of the
-     * format. raw_i == 0 would mean either a corrupt file or a bug
-     * upstream of me. */
+     * format. raw_i == 0 would mean either a corrupt file. */
     if (raw_i == 0 || raw_j == 0 || raw_i > n || raw_j > n) {
         fprintf(stderr, "malformed or out-of-range entry: %llu %llu\n",
                 (unsigned long long)raw_i, (unsigned long long)raw_j);
@@ -62,7 +61,7 @@ static int parse_edge_line(const char **pp, const char *end,
     *out_j = (vid_t)(raw_j - 1);
 
     /* Skip whatever is left on this line -- a value column, if the
-     * file has one -- without caring what it contains. We only need
+     * file has one -- without caring what it contains. I only need
      * the graph's structure, never edge weights. */
     while (p < end && *p != '\n') {
         p++;
@@ -97,8 +96,7 @@ int csr_build_from_mtx(const mtx_t *mx, csr_t *g) {
 
     /* calloc, not malloc: every counter must start at exactly 0, and
      * calloc guarantees zeroed memory (plain malloc would hand back
-     * whatever garbage bytes happened to be there, like i saw when
-     * comparing malloc to mmap).
+     * whatever garbage bytes happened to be there.
      *
      * Size is (n+1), not n: i am about to reuse this exact array
      * as row_ptr, which needs that extra trailing slot so the last
@@ -124,19 +122,14 @@ int csr_build_from_mtx(const mtx_t *mx, csr_t *g) {
         /* A self-loop (i == j) contributes nothing to BFS distances
          * between DIFFERENT vertices, so i simply drop it here.
          * Note i still consumed the line above (p already advanced
-         * past it) -- we just don't count it towards any degree. */
+         * past it) -- i just don't count it towards any degree. */
         if (i == j) continue;
 
         degree[i]++;
         if (mx->is_symmetric) degree[j]++;
     }
 
-    /* PREFIX SUM: degree[] is transformed IN PLACE into row_ptr[]
-     *
-     * Doing this inside the same array (instead of allocating a
-     * second one) avoids a second allocation the size of the vertex
-     * count -- cheap here, but the same trick matters a lot more
-     * once n is in the hundreds of millions. */
+    /* PREFIX SUM: degree[] is transformed IN PLACE into row_ptr[] */
     eid_t running = 0;
     for (vid_t v = 0; v <= n; v++) {
         eid_t d = degree[v];   
@@ -168,17 +161,17 @@ int csr_build_from_mtx(const mtx_t *mx, csr_t *g) {
 
     /* PASS 2: place each neighbour into its slot in col_idx
      *
-     * row_ptr[v] tells us WHERE vertex v's block of neighbours
-     * starts and ends, but by itself it does not tell us how many of
-     * v's slots have already been filled while we walk through the
-     * file. We need a second, throwaway array for that: scratch_buffer[v] =
+     * row_ptr[v] tells me WHERE vertex v's block of neighbours
+     * starts and ends, but by itself it does not tell me how many of
+     * v's slots have already been filled while i walk through the
+     * file. I need a second, throwaway array for that: scratch_buffer[v] =
      * "the next free slot for vertex v".
      *
      * It starts as an exact copy of row_ptr. Why not just use
      * row_ptr itself as the write position and fix it up afterwards?
-     * Because by the time we finish, row_ptr[v] would have been
-     * pushed all the way to row_ptr[v+1] -- we would have destroyed
-     * the very offsets we need to return to the caller. A separate
+     * Because by the time i finish, row_ptr[v] would have been
+     * pushed all the way to row_ptr[v+1] -- I would have destroyed
+     * the very offsets i need to return to the caller. A separate
      * small array (n+1 entries, negligible size) is simpler and
      * safer than trying to reconstruct row_ptr afterwards. */
     eid_t *scratch_buffer = malloc(((size_t)n + 1) * sizeof(eid_t));
@@ -193,7 +186,7 @@ int csr_build_from_mtx(const mtx_t *mx, csr_t *g) {
     }
 
     p = mx->data;   /* REWIND: go back to the very first data line and
-                     * re-parse the exact same bytes we already read in PASS 1. */
+                     * re-parse the exact same bytes i already read in PASS 1. */
                      
     while (p < end) {
         vid_t i, j;

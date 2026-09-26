@@ -5,10 +5,10 @@
 #include <inttypes.h>
 #include <stddef.h>
 
-#include "types.h"      // vid_t, eid_t.
-#include "mtx.h"        // mtx_t -- needed by csr_build_from_mtx.
+#include "types.h"      
+#include "mtx.h"        
 
-/* Compressed Sparse Row storage for an undirected, unweighted graph.
+/* Compressed Sparse Row storage for an undirected graph.
  *
  * The neighbours of vertex v live in col_idx at positions
  *      row_ptr[v] .. row_ptr[v+1] - 1
