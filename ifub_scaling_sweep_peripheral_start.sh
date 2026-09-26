@@ -42,7 +42,7 @@
                                 # BFS is memory-bandwidth-bound and a
                                 # noisy neighbour job would silently
                                 # ruin every result.
-#SBATCH --time=10:00:00         # generous time upper bound.
+#SBATCH --time=15:00:00         # generous time upper bound.
 #SBATCH --output=slurm_for_smaller_graphs_%j.out   # %j is substituted by Slurm with this 
                                 # job's numeric ID, so repeated
                                 # submissions never overwrite each
@@ -90,7 +90,7 @@ mkdir -p "$OUTDIR"      # -p: create directories as needed
                         # and do NOT fail if the directory already
                         # exists from a previous run of this script.
 
-MASTER_CSV="$OUTDIR/results_of_smaller_graphs.csv"
+MASTER_CSV="$OUTDIR/results_of_smaller_graphs_peripheral_start.csv"
 
 # Write the CSV header once, before any run happens. Using a plain
 # ">" (truncate/overwrite) here, not ">>", is intentional: every
