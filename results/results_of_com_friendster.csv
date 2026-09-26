@@ -1,0 +1,9 @@
+graph,threads,vertices,edges,two_sweep_start,two_sweep_lb,diameter,bfs_count,io_csr_time,diameter_time
+/scratch/d/dimopoul/graphs/com-Friendster/com-Friendster.mtx,128,65608366,3612134270,6998605,37,37,14,498.933,188.374
+/scratch/d/dimopoul/graphs/com-Friendster/com-Friendster.mtx,64,65608366,3612134270,6998605,37,37,14,440.659,115.935
+/scratch/d/dimopoul/graphs/com-Friendster/com-Friendster.mtx,32,65608366,3612134270,6998605,37,37,14,440.985,115.727
+/scratch/d/dimopoul/graphs/com-Friendster/com-Friendster.mtx,16,65608366,3612134270,6998605,37,37,14,439.947,115.859
+/scratch/d/dimopoul/graphs/com-Friendster/com-Friendster.mtx,8,65608366,3612134270,6998605,37,37,14,440.937,149.276
+/scratch/d/dimopoul/graphs/com-Friendster/com-Friendster.mtx,4,65608366,3612134270,6998605,37,37,14,440.620,196.775
+/scratch/d/dimopoul/graphs/com-Friendster/com-Friendster.mtx,2,65608366,3612134270,6998605,37,37,14,440.738,308.477
+/scratch/d/dimopoul/graphs/com-Friendster/com-Friendster.mtx,1,65608366,3612134270,6998605,37,37,14,443.231,455.203
