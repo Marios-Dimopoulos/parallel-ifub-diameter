@@ -1,10 +1,21 @@
+# build outputs
 *.o
-*.txt
-selected_graphs_for_diversity.md
-ifub
+/ifub
+/brute_force_bfs
+
+# Slurm job logs
 *.out
-results/results_of_naca0015.csv
-results/results_of_smaller_graphs.csv
-brute_force_bfs
-results/results_of_com_friendster.csv
-results/results_of_smaller_graphs_peripheral_start.csv
+
+# Python (scripts are kept out of the repo on purpose)
+*.py
+__pycache__/
+.venv/
+plots/
+
+# graph data (lives in /scratch, not in the repo)
+*.mtx
+*.tar.gz
+
+# private notes
+selected_graphs_for_diversity.md
+report_graphs_todo.txt
