@@ -20,8 +20,7 @@
  * Correctness of iFUB holds for any u; only the speed changes.
  *
  * 'dist' is caller-allocated scratch space of g->n entries, reused
- * across both internal BFS calls -- avoids two separate allocations
- * 'lb_out' receives the lower bound described above.
+ * across both internal BFS calls. 'lb_out' receives the lower bound described above.
  * 
  * Returns the chosen starting vertex (the midpoint). */
 vid_t two_sweep(const csr_t *g, dist_t *dist, dist_t *lb_out);
