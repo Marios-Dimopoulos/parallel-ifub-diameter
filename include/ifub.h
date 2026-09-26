@@ -6,7 +6,7 @@
 
 /* When non-zero, ifub_diameter() prints its internal [debug]/[progress]
  * diagnostics to stderr. Off by default -- set explicitly by the 
- * caller (e.g. from a -v comamand-line flag) before calling
+ * caller (from a -v comamand-line flag) before calling
  * ifub_diameter(). */
 extern int ifub_verbose;
 

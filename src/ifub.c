@@ -1,9 +1,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
-#include <stdatomic.h>  /* _Atomic, atomic_init, atomic_load
-                         * atomic_store, atomic_fetch_add,
-                         * atomic_compare_exchange_weak */
+#include <stdatomic.h> 
 #include <omp.h> 
 
 #include "ifub.h"
@@ -90,9 +88,7 @@ dist_t ifub_diameter(const csr_t *g, vid_t u, dist_t lb_init, dist_t *dist, uint
     }
 
     /* COUNTING pass: level_start[dist[v]+1] counts how many vertices
-     * sit at each distance. The "+1" shift is what turns this into
-     * an EXCLUSIVE prefix sum in the next loop -- identical trick to
-     * the degree-counting step in csr_build_from_mtx(). */
+     * sit at each distance. */
     for (vid_t v = 0; v < g->n; v++) {
         level_start[dist[v] + 1]++;
     }
@@ -181,10 +177,7 @@ dist_t ifub_diameter(const csr_t *g, vid_t u, dist_t lb_init, dist_t *dist, uint
     dist_t ub = 2 * h;
 
     /* lb needs to be readable/writable from many threads at once, so
-     * it lives in an _Atomic variable instead of a plain dist_t.
-     * Every read/write of an _Atomic variable is guaranteed by the C
-     * standard to be free of data races, unlike a plain variable
-     * accessed from multiple threads without synchronisation. */
+     * it lives in an _Atomic variable instead of a plain dist_t. */
     _Atomic dist_t lb_atomic;
     atomic_init(&lb_atomic, lb);
 
@@ -194,7 +187,7 @@ dist_t ifub_diameter(const csr_t *g, vid_t u, dist_t lb_init, dist_t *dist, uint
     atomic_init(&stop_flag, 0);
 
     /* atomic_bfs_counter is a simple atomic counter, incremented once 
-     * per BFS actually executed (not merely spawned). It exists 
+     * per BFS actually executed. It exists 
      * purely for the debug progress messages below and for the 
      * final, precise bfs_count the caller receives. */
     _Atomic uint64_t atomic_bfs_counter;
@@ -218,7 +211,7 @@ dist_t ifub_diameter(const csr_t *g, vid_t u, dist_t lb_init, dist_t *dist, uint
                     level, begin, end, lb, ub);
         }
 
-        /* omp parallel: spawns the thread team (e.g. 8 threads).
+        /* omp parallel: spawns the thread team.
          * Every thread reaches the omp single block below, but only 
          * ONE of them actually executes its body -- the rest wait.
          * ready to steal tasks as soon as any appear in the queue. */
@@ -230,8 +223,7 @@ dist_t ifub_diameter(const csr_t *g, vid_t u, dist_t lb_init, dist_t *dist, uint
                  * (whichever one the runtime picked for 'single').
                  * It does NOT execute any BFS work directly -- each 
                  * iteration merely REGISTERS one task descriptor
-                 * ("run this block, eventually, on whichever thread
-                 * picks it up") and immediateley moves on to create
+                 * and immediateley moves on to create
                  * the next one. The other idle threads from the 
                  * 'parallel' team pick these tasks up concurrently, 
                  * often well before this loop itself has finished
@@ -241,10 +233,7 @@ dist_t ifub_diameter(const csr_t *g, vid_t u, dist_t lb_init, dist_t *dist, uint
 
                     /* firstprivate(v): each task gets its OWN private
                      * copy of v's value, taken at the moment the task
-                     * was created -- essential here, since 'v' is the
-                     * for-loop's own variable and would otherwise keep
-                     * changin underneath already-created-but-not-yet-
-                     * run tasks if it were merely shared.
+                     * was created.
                      * 
                      * shared(...): these variables are the SAME single
                      * instance for every task -- intentional, since 
@@ -343,8 +332,7 @@ dist_t ifub_diameter(const csr_t *g, vid_t u, dist_t lb_init, dist_t *dist, uint
         level--;    // Move to the next level down.
     }
 
-    /* Report the EXACT number of BFS calls genuinely executed 
-     * (not merely spawned), read from the atomic counter. */
+    /* Report the EXACT number of BFS calls genuinely executed. */
     *bfs_count = atomic_load(&atomic_bfs_counter);
 
     free(dist_pool);

@@ -33,7 +33,7 @@ static uint64_t parse_uint(const char **pp, const char *end) {
 
 
 /* Reads one data line of the form "i j" (maybe followed by a
- * value column i don't care about, e.g. "i j 3.14"), and:
+ * value column i don't care about), and:
  *   - converts from the file's 1-based indexing to 0-based vid_t
  *   - validates that both indices are in range
  *   - advances *pp past the entire line, ready for the next call

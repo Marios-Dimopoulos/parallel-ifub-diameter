@@ -12,7 +12,7 @@ dist_t bfs_eccentricity(const csr_t *g, vid_t source, dist_t *dist) {
         dist[v] = DIST_UNREACHED;
     }
 
-    /* The queue. Each vertex is enqueued at most once in a BFS, so a 
+    /* Each vertex is enqueued at most once in a BFS, so a 
      * plain array of size n with two moving indices is enough --
      * no need for a circular buffer. */
     vid_t *queue = malloc((size_t)g->n * sizeof(vid_t));

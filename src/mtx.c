@@ -107,14 +107,12 @@ int mtx_open(const char *path, mtx_t *mx) {
      * only the kernel's strategy. It is free to ignore them, which
      * is why i do not check the return value.
      *
-     * MADV_SEQUENTIAL: "I will read front to back, in order."
-     *      -> the kernel does aggressive readahead: when i ask for
-     *         page 100 it also fetches 101..150 in advance, and it 
-     *         drops pages i already passed from the cache sooner.
+     * MADV_SEQUENTIAL: the kernel does aggressive readahead: when i ask for
+     * page 100 it also fetches 101..150 in advance, and it 
+     * drops pages i already passed from the cache sooner.
      *
-     * MADV_WILLNEED: "I will need all of it."
-     *      -> the kernel starts pulling it in right now, in the
-     *         background, instead of waiting for me to fault.
+     * MADV_WILLNEED: the kernel starts pulling it in right now, in the
+     * background, instead of waiting for page fault.
      *
      * This matters a lot here: the data lives on /scratch, which is
      * NFS. Without these hints every page fault is a separate 
@@ -126,7 +124,7 @@ int mtx_open(const char *path, mtx_t *mx) {
     mx->len = (size_t)st.st_size;
 
     /* Two pointers that bound the region i'm allowed to touch.
-     * p is the moving cursor, end never moves. */
+     * `p` is the moving cursor, `end` never moves. */
     const char *p = base;
     const char *end = base + mx->len;
 
@@ -224,7 +222,7 @@ int mtx_open(const char *path, mtx_t *mx) {
     while (p < end && (*p == '%' || *p == '\n' || *p == '\r')) {
         p = skip_line(p, end);
     }
-    /* p now points at the dimension line, e.g "4 4 5\n" */
+    /* p now points at the dimension line. */
 
     /* STEP 10: Read the three dimension number. */
 
@@ -246,7 +244,7 @@ int mtx_open(const char *path, mtx_t *mx) {
     }
 
     /* Move past the rest of the dimension line. After this, p points
-     * at the first real data line -- the whole point of the file. */
+     * at the first real data line. */
     p = skip_line(p, end);
 
     /* STEP 11: Sanity checks on the dimensions. */
@@ -277,10 +275,8 @@ int mtx_open(const char *path, mtx_t *mx) {
 
     /* STEP 12: record the answers and return. */
 
-    mx->n = (vid_t)dims[0];     /* question 1: how many vertices */
-    mx->data = p;               /* question 2: where edgse start */
-    /* questions 3 and 4 were answered in step 8 */
-
+    mx->n = (vid_t)dims[0];    
+    mx->data = p;               
     mx->nnz_lines = dims[2];
 
     return 0;
@@ -295,7 +291,7 @@ void mtx_close(mtx_t *mx) {
     }
 }
 
-/* Print what i detected, for the human watching the run.
+/* Print human friendly information about the reading of the .mtx file.
  *
  * Goes to stderr, not stdout, on purpose: that way the program's 
  * real output can be redirected to a file without diagnostics 
