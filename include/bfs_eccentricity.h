@@ -16,15 +16,12 @@ typedef int32_t dist_t;
  *
  * 'dist' must already be allocated by the caller with g->n entries.
  * On return, dist[v] holds the number of edges on the shortest path
- * from 'source' to 'v', or DIST_UNREACHED if 'v' is not reachable
- * (e.g. it lives in a different connected component). dist[source]
- * is always 0.
+ * from 'source' to 'v', or DIST_UNREACHED if 'v' is not reachable. 
+ * dist[source] is always 0.
  * 
  * Returns the eccentricity of 'source': the largest distance found,
- * i.e. max(dist[v]) over all reached v. This is exactly what the 
- * later 2-sweep / iFUB algorithm needs from every BFS they run, so 
- * i compute it here once rather than making every caller scan 
- * dist[] again afterwards. */
+ * over all reached v. This is exactly what the 
+ * later 2-sweep / iFUB algorithm needs from every BFS they run. */
 dist_t bfs_eccentricity(const csr_t *g, vid_t source, dist_t *dist);
 
 #endif

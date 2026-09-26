@@ -14,9 +14,7 @@ dist_t bfs_eccentricity(const csr_t *g, vid_t source, dist_t *dist) {
 
     /* The queue. Each vertex is enqueued at most once in a BFS, so a 
      * plain array of size n with two moving indices is enough --
-     * no need for a circular buffer. Positions [0, tail) hold
-     * every vertex we have ever enqueued, in the order i queued
-     * them, [head, tail) are the ones not yet processed. */
+     * no need for a circular buffer. */
     vid_t *queue = malloc((size_t)g->n * sizeof(vid_t));
     if (!queue) {
         fprintf(stderr, "bfs: out of memory (queue, %" PRIvid " vertices)\n", g->n);
@@ -33,8 +31,7 @@ dist_t bfs_eccentricity(const csr_t *g, vid_t source, dist_t *dist) {
     /* Standard BFS: pull a vertex off the front, look at its 
      * neighbours, push the unvisited ones onto the back. Because
      * every edge is examined from the vertex that discovers it, and 
-     * every vertex is pushed exactly once, this is O(n + m) total --
-     * not O(n) per level or anything more expensive. */
+     * every vertex is pushed exactly once. */
     while (head < tail) {
         vid_t u = queue[head++];
         dist_t du = dist[u];
