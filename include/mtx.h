@@ -22,15 +22,10 @@ typedef struct {
     int is_symmetric;       // banner says only the triangle stored.
 } mtx_t;
 
-/* Opens and mmaps 'path', parses the banner and the dimension line,
- * and leaves 'mx->data' pointing to the first entry.
- * Returns 0 on success, -1 on failure. */
 int mtx_open(const char *path, mtx_t *mx);
 
-/* Unmaps the file. */
 void mtx_close(mtx_t *mx);
 
-/* Prints size, dimensions and detected format to stderr. */
 void mtx_describe(const mtx_t *mx);
 
 #endif

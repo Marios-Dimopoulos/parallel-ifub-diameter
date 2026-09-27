@@ -33,6 +33,7 @@ static const char *skip_line(const char *p, const char *end) {
     return (p < end) ? p + 1 : end;
 }
 
+/* Creates the mapping of the file to the memory. */
 int mtx_open(const char *path, mtx_t *mx) {
     /* STEP 1: Open the file. */
 
