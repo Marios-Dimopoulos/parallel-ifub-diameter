@@ -14,7 +14,7 @@
 
 #include "csr.h"
 
-
+/* deallocates the variables and heap memory used for the csr format. */
 void csr_free(csr_t *g) {
     free(g->row_ptr);
     free(g->col_idx);
@@ -80,7 +80,7 @@ static int parse_edge_line(const char **pp, const char *end,
     return 0;
 }
 
-
+/* Transformation of the .mtx data into csr format. */
 int csr_build_from_mtx(const mtx_t *mx, csr_t *g) {
     const char *end = mx->base + mx->len;
     vid_t n = mx->n;
